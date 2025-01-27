@@ -4,6 +4,13 @@ Schemas for cross-domain media recommendations.
 
 from pydantic import BaseModel
 
+class CrossDomainMediaInput(BaseModel):
+    """Schema for input book data to cross-domain media agent."""
+    title: str
+    author: str
+    genre: str
+    description: str
+
 class MovieRecommendation(BaseModel):
     """Schema for movie recommendations."""
     title: str
