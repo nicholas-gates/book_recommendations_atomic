@@ -7,43 +7,17 @@ import os
 import json
 from typing import Dict, Any
 from datetime import datetime
-import instructor
-from openai import OpenAI
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 from dotenv import load_dotenv
-from atomic_agents.agents.base_agent import BaseAgentConfig
 
-from ..agents.book_agent import BookRecommendationAgent
+from ..agents.config import create_book_agent
 from ..schemas.book_schemas import BookRecommendationInput
 
 load_dotenv()
 
 console = Console()
-
-def setup_agent() -> BookRecommendationAgent:
-    """
-    Set up the book recommendation agent with OpenAI configuration.
-
-    Returns:
-        BookRecommendationAgent: Configured book recommendation agent
-    """
-    # Get API key from environment
-    load_dotenv()  # Load environment variables from .env file
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        console.print("[red]Error: OPENAI_API_KEY environment variable not set[/red]")
-        raise SystemExit(1)
-
-    # Create instructor client using from_openai
-    client = instructor.from_openai(OpenAI(api_key=api_key))
-    
-    # Log the type of the client
-    console.print(f"[cyan]Client type: {type(client)}[/cyan]")
-    
-    # Create and return the agent with the client
-    return BookRecommendationAgent(config=BaseAgentConfig(client=client))
 
 def format_book_recommendation(book: Dict[str, Any]) -> Panel:
     """
@@ -70,8 +44,8 @@ def format_book_recommendation(book: Dict[str, Any]) -> Panel:
 def main():
     """Main CLI interface for book recommendations."""
     try:
-        # Set up the agent
-        agent = setup_agent()
+        # Set up the agent using the configuration module
+        agent = create_book_agent()
 
         # Welcome message
         console.print("\n[bold cyan]Welcome to the Book Recommendation System![/bold cyan]")
