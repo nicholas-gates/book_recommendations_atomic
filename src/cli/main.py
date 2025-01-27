@@ -3,19 +3,18 @@ CLI interface for the book recommendation system.
 Provides a simple command-line interface to interact with the book recommendation agent.
 """
 
-import os
 import json
-from typing import Dict, Any
+from typing import Dict, Any, List
 from datetime import datetime
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
-from dotenv import load_dotenv
 
 from ..agents.config import create_book_agent
+from ..agents.media_agent import CrossDomainMediaAgent
 from ..schemas.book_schemas import BookRecommendationInput
-
-load_dotenv()
+from ..schemas.media_schemas import CrossDomainMediaInput
+from .media_formatter import format_media_recommendations
 
 console = Console()
 
@@ -40,6 +39,78 @@ def format_book_recommendation(book: Dict[str, Any]) -> Panel:
     )
 
     return Panel(content, border_style="cyan")
+
+def select_book(recommendations: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Let the user select a book from the recommendations.
+    
+    Args:
+        recommendations (List[Dict[str, Any]]): List of book recommendations
+        
+    Returns:
+        Dict[str, Any]: Selected book data
+    """
+    console.print("\n[bold cyan]Select a book to get related media recommendations:[/bold cyan]")
+    
+    # Display numbered list of books
+    for i, book in enumerate(recommendations, 1):
+        console.print(f"\n[bold]{i}[/bold]. {book['title']} by {book['author']}")
+    
+    # Get user selection
+    while True:
+        try:
+            choice = console.input("\n[bold green]Enter the number of your choice (or 'q' to quit): [/bold green]")
+            
+            if choice.lower() in ['q', 'quit', 'exit']:
+                return None
+            
+            index = int(choice) - 1
+            if 0 <= index < len(recommendations):
+                return recommendations[index]
+            else:
+                console.print("[red]Invalid choice. Please try again.[/red]")
+        except ValueError:
+            console.print("[red]Please enter a valid number.[/red]")
+
+def get_media_recommendations(book_data: Dict[str, Any]) -> None:
+    """
+    Get and display cross-domain media recommendations for a book.
+    
+    Args:
+        book_data (Dict[str, Any]): Selected book data
+    """
+    try:
+        # Create media agent
+        media_agent = CrossDomainMediaAgent()
+        
+        # Convert book data to input schema
+        book_input = CrossDomainMediaInput(
+            title=book_data['title'],
+            author=book_data['author'],
+            genre=book_data['genre'],
+            description=book_data['description']
+        )
+        
+        # Get recommendations
+        console.print("\n[cyan]Finding related media recommendations...[/cyan]")
+        recommendations = media_agent.run(book_input)
+        
+        # Display recommendations
+        console.print("\n[bold cyan]Here are media recommendations based on your selected book:[/bold cyan]\n")
+        panels = format_media_recommendations(recommendations)
+        for panel in panels:
+            console.print(panel)
+            console.print()  # Add spacing between panels
+        
+        # Save recommendations to file
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"media_recommendations_{timestamp}.json"
+        with open(filename, 'w') as f:
+            json.dump(recommendations.model_dump(), f, indent=2)
+        console.print(f"[dim]Recommendations saved to {filename}[/dim]\n")
+        
+    except Exception as e:
+        console.print(f"[red]Error getting media recommendations: {str(e)}[/red]")
 
 def main():
     """Main CLI interface for book recommendations."""
@@ -67,10 +138,11 @@ def main():
                 # Display recommendations
                 console.print("\n[bold cyan]Here are your personalized book recommendations:[/bold cyan]\n")
 
-                for book in response.recommendations:
-                    # Convert Pydantic model to dict for formatting
-                    book_dict = book.model_dump()
-                    panel = format_book_recommendation(book_dict)
+                # Convert Pydantic models to list of dicts for easier handling
+                book_list = [book.model_dump() for book in response.recommendations]
+                
+                for book in book_list:
+                    panel = format_book_recommendation(book)
                     console.print(panel)
                     console.print()  # Add spacing between recommendations
 
@@ -80,6 +152,13 @@ def main():
                 with open(filename, 'w') as f:
                     json.dump(response.model_dump(), f, indent=2)
                 console.print(f"[dim]Recommendations saved to {filename}[/dim]\n")
+
+                # Ask if user wants to get media recommendations
+                console.print("\n[bold cyan]Would you like to get movie, game, and song recommendations based on one of these books?[/bold cyan]")
+                if console.input("[bold green]Enter 'y' for yes, any other key to continue: [/bold green]").lower() == 'y':
+                    selected_book = select_book(book_list)
+                    if selected_book:
+                        get_media_recommendations(selected_book)
 
             except Exception as e:
                 console.print(f"[red]Error getting recommendations: {str(e)}[/red]")
