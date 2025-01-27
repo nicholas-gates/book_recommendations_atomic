@@ -3,6 +3,7 @@ Cross-domain media recommendation agent implementation using Atomic Agents frame
 This agent provides recommendations for movies, games, and songs based on a book's themes.
 """
 
+import instructor
 from atomic_agents.agents.base_agent import BaseAgent, BaseAgentConfig
 from atomic_agents.lib.components.system_prompt_generator import SystemPromptGenerator
 
@@ -14,7 +15,7 @@ from ..schemas.media_schemas import (
 class CrossDomainMediaAgent(BaseAgent):
     """
     Agent for providing cross-domain media recommendations based on a book.
-    
+
     This agent uses a structured approach to:
     1. Analyze the themes and elements of a selected book
     2. Find thematically similar content in other media types
@@ -27,21 +28,21 @@ class CrossDomainMediaAgent(BaseAgent):
     def __init__(self, config: BaseAgentConfig = None):
         """
         Initialize the cross-domain media recommendation agent.
-        
+
         Args:
             config (BaseAgentConfig, optional): Agent configuration.
                 If not provided, a default configuration will be used.
         """
         if config is None:
             config = self._create_default_config()
-        
+
         super().__init__(config)
 
     @staticmethod
     def _create_default_config() -> BaseAgentConfig:
         """
         Create default configuration for the cross-domain media agent.
-        
+
         Returns:
             BaseAgentConfig: Default agent configuration
         """
@@ -74,15 +75,15 @@ class CrossDomainMediaAgent(BaseAgent):
             output_schema=CrossDomainRecommendations
         )
 
-    def run(self, book_data: CrossDomainMediaInput) -> CrossDomainRecommendations:
+    def run(self, params: CrossDomainMediaInput) -> CrossDomainRecommendations:
         """
         Generate cross-domain media recommendations based on a book.
-        
+
         Args:
-            book_data (CrossDomainMediaInput): Book information including title, author,
-                                             genre, and description
-        
+            params (CrossDomainMediaInput): Book information including title, author,
+                                        genre, and description
+
         Returns:
             CrossDomainRecommendations: Thematically related movie, game, and song
         """
-        return super().run(book_data)
+        return super().run(params)

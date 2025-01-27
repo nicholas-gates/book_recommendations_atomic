@@ -10,8 +10,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from ..agents.config import create_book_agent
-from ..agents.media_agent import CrossDomainMediaAgent
+from ..agents.config import create_book_agent, create_media_agent
 from ..schemas.book_schemas import BookRecommendationInput
 from ..schemas.media_schemas import CrossDomainMediaInput
 from .media_formatter import format_media_recommendations
@@ -80,8 +79,8 @@ def get_media_recommendations(book_data: Dict[str, Any]) -> None:
         book_data (Dict[str, Any]): Selected book data
     """
     try:
-        # Create media agent
-        media_agent = CrossDomainMediaAgent()
+        # Create media agent using the configuration module
+        media_agent = create_media_agent()
         
         # Convert book data to input schema
         book_input = CrossDomainMediaInput(

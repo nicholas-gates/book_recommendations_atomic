@@ -1,4 +1,4 @@
 # TODO
-* ADD dotenv import for API key
-* Ask how OpenAI is configured? Model selection, temperature, etc.?
-* Test CLI implementation
+* X ADD dotenv import for API key
+* X Ask how OpenAI is configured? Model selection, temperature, etc.?
+* X Test CLI implementation
