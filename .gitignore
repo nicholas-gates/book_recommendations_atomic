@@ -1,2 +1,6 @@
+.env
 .vscode/*
 .windsurfrules
+__pycache__
+
+recommendations_*.json
