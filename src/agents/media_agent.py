@@ -11,6 +11,7 @@ from ..schemas.media_schemas import (
     CrossDomainMediaInput,
     CrossDomainRecommendations
 )
+from ..logging.logger import Logger
 
 class CrossDomainMediaAgent(BaseAgent):
     """
@@ -37,6 +38,7 @@ class CrossDomainMediaAgent(BaseAgent):
             config = self._create_default_config()
 
         super().__init__(config)
+        self.logger = Logger(__name__)
 
     @staticmethod
     def _create_default_config() -> BaseAgentConfig:
@@ -86,4 +88,23 @@ class CrossDomainMediaAgent(BaseAgent):
         Returns:
             CrossDomainRecommendations: Thematically related movie, game, and song
         """
-        return super().run(params)
+        self.logger.log('info', 'Running media recommendation agent', {
+            'input': params.model_dump()
+        })
+        
+        try:
+            output = super().run(params)
+            self.logger.log('info', 'Media recommendations generated', {
+                'book': params.book_title,
+                'num_movies': len(output.movies),
+                'num_games': len(output.games),
+                'num_songs': len(output.songs)
+            })
+            return output
+            
+        except Exception as e:
+            self.logger.log('error', 'Error in media recommendation agent', {
+                'error': str(e),
+                'input': params.model_dump()
+            })
+            raise

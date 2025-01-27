@@ -4,3 +4,7 @@
 __pycache__
 
 recommendations_*.json
+
+*.log
+build
+*.egg-info
