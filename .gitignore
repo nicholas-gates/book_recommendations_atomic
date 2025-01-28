@@ -4,6 +4,7 @@
 __pycache__
 
 recommendations_*.json
+media_recommendations_*.json
 
 *.log
 build

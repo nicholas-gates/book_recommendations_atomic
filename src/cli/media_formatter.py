@@ -6,7 +6,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from ..schemas.media_schemas import CrossDomainRecommendations
+from ..schemas.media_schemas import CrossDomainRecommendationsOutput
 
 console = Console()
 
@@ -39,7 +39,7 @@ def format_song_recommendation(song: dict) -> Panel:
     content = Text.assemble(title, artist, description, reason)
     return Panel(content, border_style="yellow", title="Song Recommendation")
 
-def format_media_recommendations(recommendations: CrossDomainRecommendations) -> list[Panel]:
+def format_media_recommendations(recommendations: CrossDomainRecommendationsOutput) -> list[Panel]:
     """
     Format all media recommendations for display.
     

@@ -9,7 +9,7 @@ from atomic_agents.lib.components.system_prompt_generator import SystemPromptGen
 
 from ..schemas.media_schemas import (
     CrossDomainMediaInput,
-    CrossDomainRecommendations
+    CrossDomainRecommendationsOutput
 )
 from ..logging.logger import Logger
 
@@ -24,7 +24,7 @@ class CrossDomainMediaAgent(BaseAgent):
     """
 
     input_schema = CrossDomainMediaInput
-    output_schema = CrossDomainRecommendations
+    output_schema = CrossDomainRecommendationsOutput
 
     def __init__(self, config: BaseAgentConfig = None):
         """
@@ -83,7 +83,7 @@ class CrossDomainMediaAgent(BaseAgent):
         config = BaseAgentConfig(
             system_prompt_generator=system_prompt_generator,
             input_schema=CrossDomainMediaInput,
-            output_schema=CrossDomainRecommendations
+            output_schema=CrossDomainRecommendationsOutput
         )
 
         logger.log('debug', 'Default configuration created', {
@@ -94,7 +94,7 @@ class CrossDomainMediaAgent(BaseAgent):
 
         return config
 
-    def run(self, params: CrossDomainMediaInput) -> CrossDomainRecommendations:
+    def run(self, book: CrossDomainMediaInput) -> CrossDomainRecommendationsOutput:
         """
         Generate cross-domain media recommendations based on a book.
 
@@ -106,31 +106,30 @@ class CrossDomainMediaAgent(BaseAgent):
             CrossDomainRecommendations: Thematically related movie, game, and song
         """
         self.logger.log('info', 'Starting media recommendation generation', {
-            'book_title': params.title,
-            'book_author': params.author,
-            'book_genre': params.genre
+            'book_title': book.title,
+            'book_author': book.author,
+            'book_genre': book.genre
         })
         
         try:
             self.logger.log('debug', 'Calling parent run method')
-            output = super().run(params)
+            output = super().run(book)
             
-            self.logger.log('info', 'Media recommendations generated successfully', {
-                'book': params.title,
-                'movie_recommendation': output.movies[0].title if output.movies else None,
-                'game_recommendation': output.games[0].title if output.games else None,
-                'song_recommendation': output.songs[0].title if output.songs else None,
-                'num_movies': len(output.movies),
-                'num_games': len(output.games),
-                'num_songs': len(output.songs)
+            self.logger.log('info', 'Media recommendations generated successfully. Media titles:', {
+                'book': book.title,
+                'movie_recommendation': output.movie.title,
+                'game_recommendation': output.game.title,
+                'song_recommendation': output.song.title
             })
+            
             return output
             
         except Exception as e:
             self.logger.log('error', 'Failed to generate media recommendations', {
+                'book_title': book.title,
                 'error_type': type(e).__name__,
                 'error_message': str(e),
-                'book_title': params.title,
-                'input_params': params.model_dump()
+                'input_params': book.dict()
             })
+            
             raise

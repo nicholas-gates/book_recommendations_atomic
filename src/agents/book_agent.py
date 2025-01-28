@@ -77,7 +77,7 @@ class BookRecommendationAgent(BaseAgent):
             output_schema=BookRecommendationOutput
         )
 
-    def run(self, params: BookRecommendationInput) -> BookRecommendationOutput:
+    def run(self, bookThought: BookRecommendationInput) -> BookRecommendationOutput:
         """
         Generate book recommendations based on user input.
 
@@ -88,11 +88,11 @@ class BookRecommendationAgent(BaseAgent):
             BookRecommendationOutput: List of personalized book recommendations
         """
         self.logger.log('info', 'Running book recommendation agent', {
-            'input': params.model_dump()
+            'input': bookThought.model_dump()
         })
         
         try:
-            output = super().run(params)
+            output = super().run(bookThought)
             self.logger.log('info', 'Book recommendations generated', {
                 'num_recommendations': len(output.recommendations)
             })
@@ -101,6 +101,6 @@ class BookRecommendationAgent(BaseAgent):
         except Exception as e:
             self.logger.log('error', 'Error in book recommendation agent', {
                 'error': str(e),
-                'input': params.model_dump()
+                'input': bookThought.model_dump()
             })
             raise

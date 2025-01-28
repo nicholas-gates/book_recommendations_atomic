@@ -93,15 +93,9 @@ def get_media_recommendations(book_data: Dict[str, Any]) -> None:
             genre=book_data['genre'],
             description=book_data['description']
         )
-        logger.log('debug', 'Media agent input', {'input': input_data.model_dump()})
+        logger.log('debug', 'Media agent input', {'CrossDomainMediaInput': input_data.model_dump()})
         
         response = media_agent.run(input_data)
-        logger.log('info', 'Generated media recommendations', {
-            'book': book_data['title'],
-            'num_movies': len(response.movies),
-            'num_games': len(response.games),
-            'num_songs': len(response.songs)
-        })
 
         # Display recommendations
         console.print("\n[bold cyan]Here are your cross-domain media recommendations:[/bold cyan]")
