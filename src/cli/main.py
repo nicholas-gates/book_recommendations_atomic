@@ -99,7 +99,9 @@ def get_media_recommendations(book_data: Dict[str, Any]) -> None:
 
         # Display recommendations
         console.print("\n[bold cyan]Here are your cross-domain media recommendations:[/bold cyan]")
-        console.print(format_media_recommendations(response))
+        for panel in format_media_recommendations(response):
+            console.print(panel)
+            console.print()  # Add a blank line between panels
 
         # Save recommendations
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
