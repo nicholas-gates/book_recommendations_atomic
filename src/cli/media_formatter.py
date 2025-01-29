@@ -1,12 +1,12 @@
 """
-Formatting utilities for cross-domain media recommendations.
+Formatting utilities for media recommendations output.
 """
 
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from ..schemas.media_schemas import CrossDomainRecommendationsOutput
+from ..schemas.media_schemas import CrossDomainMediaOutput
 
 console = Console()
 
@@ -39,12 +39,12 @@ def format_song_recommendation(song: dict) -> Panel:
     content = Text.assemble(title, artist, description, reason)
     return Panel(content, border_style="yellow", title="Song Recommendation")
 
-def format_media_recommendations(recommendations: CrossDomainRecommendationsOutput) -> list[Panel]:
+def format_media_recommendations(recommendations: CrossDomainMediaOutput) -> list[Panel]:
     """
     Format all media recommendations for display.
     
     Args:
-        recommendations (CrossDomainRecommendations): Media recommendations to format
+        recommendations (CrossDomainMediaOutput): Media recommendations to format
     
     Returns:
         list[Panel]: List of formatted recommendation panels

@@ -32,7 +32,7 @@ class SongRecommendation(BaseIOSchema):
     description: str
     reason: str
 
-class CrossDomainRecommendationsOutput(BaseIOSchema):
+class CrossDomainMediaOutput(BaseIOSchema):
     """Schema for combined cross-domain recommendations."""
     movie: MovieRecommendation
     game: GameRecommendation

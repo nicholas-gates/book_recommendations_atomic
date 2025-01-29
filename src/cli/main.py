@@ -3,6 +3,9 @@ CLI interface for the book recommendation system.
 Provides a simple command-line interface to interact with the book recommendation agent.
 """
 
+from dotenv import load_dotenv
+load_dotenv()  # Load environment variables before other imports
+
 import json
 from typing import Dict, Any, List
 from datetime import datetime

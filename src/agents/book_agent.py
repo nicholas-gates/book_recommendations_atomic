@@ -4,7 +4,7 @@ This agent provides book recommendations based on user input.
 """
 
 # import instructor
-from atomic_agents.agents.base_agent import BaseAgent, BaseAgentConfig
+from atomic_agents.agents.base_agent import BaseAgentConfig
 from atomic_agents.lib.components.system_prompt_generator import SystemPromptGenerator
 
 from ..schemas.book_schemas import (
@@ -12,8 +12,9 @@ from ..schemas.book_schemas import (
     BookRecommendationOutput
 )
 from ..logging.logger import Logger
+from .base import TracedBaseAgent
 
-class BookRecommendationAgent(BaseAgent):
+class BookRecommendationAgent(TracedBaseAgent[BookRecommendationInput, BookRecommendationOutput]):
     """
     Agent for providing personalized book recommendations.
 

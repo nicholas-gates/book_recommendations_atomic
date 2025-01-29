@@ -7,6 +7,8 @@ requires-python = ">=3.12"
 dependencies = [
     "atomic-agents>=1.0.17",
     "instructor>=1.7.2",
+    "langchain>=0.3.16",
+    "langsmith>=0.3.2",
     "openai>=1.60.1",
     "pydantic>=2.10.6",
     "python-dotenv>=1.0.1",

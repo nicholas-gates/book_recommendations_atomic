@@ -1,19 +1,20 @@
 """
-Cross-domain media recommendation agent implementation using Atomic Agents framework.
-This agent provides recommendations for movies, games, and songs based on a book's themes.
+Cross-domain media recommendation agent implementation.
+This agent provides recommendations for movies, games, and songs based on book preferences.
 """
 
 import instructor
-from atomic_agents.agents.base_agent import BaseAgent, BaseAgentConfig
+from atomic_agents.agents.base_agent import BaseAgentConfig
 from atomic_agents.lib.components.system_prompt_generator import SystemPromptGenerator
 
 from ..schemas.media_schemas import (
     CrossDomainMediaInput,
-    CrossDomainRecommendationsOutput
+    CrossDomainMediaOutput
 )
 from ..logging.logger import Logger
+from .base import TracedBaseAgent
 
-class CrossDomainMediaAgent(BaseAgent):
+class CrossDomainMediaAgent(TracedBaseAgent[CrossDomainMediaInput, CrossDomainMediaOutput]):
     """
     Agent for providing cross-domain media recommendations based on a book.
 
@@ -22,9 +23,6 @@ class CrossDomainMediaAgent(BaseAgent):
     2. Find thematically similar content in other media types
     3. Provide detailed explanations of thematic connections
     """
-
-    input_schema = CrossDomainMediaInput
-    output_schema = CrossDomainRecommendationsOutput
 
     def __init__(self, config: BaseAgentConfig = None):
         """
@@ -83,7 +81,7 @@ class CrossDomainMediaAgent(BaseAgent):
         config = BaseAgentConfig(
             system_prompt_generator=system_prompt_generator,
             input_schema=CrossDomainMediaInput,
-            output_schema=CrossDomainRecommendationsOutput
+            output_schema=CrossDomainMediaOutput
         )
 
         logger.log('debug', 'Default configuration created', {
@@ -94,7 +92,7 @@ class CrossDomainMediaAgent(BaseAgent):
 
         return config
 
-    def run(self, book: CrossDomainMediaInput) -> CrossDomainRecommendationsOutput:
+    def run(self, book: CrossDomainMediaInput) -> CrossDomainMediaOutput:
         """
         Generate cross-domain media recommendations based on a book.
 
@@ -103,7 +101,7 @@ class CrossDomainMediaAgent(BaseAgent):
                                         genre, and description
 
         Returns:
-            CrossDomainRecommendations: Thematically related movie, game, and song
+            CrossDomainMediaOutput: Thematically related movie, game, and song
         """
         self.logger.log('info', 'Starting media recommendation generation', {
             'book_title': book.title,
