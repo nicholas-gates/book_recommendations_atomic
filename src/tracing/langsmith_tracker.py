@@ -11,6 +11,7 @@ import pytz
 from langsmith import traceable
 from langsmith.run_trees import RunTree
 from langsmith import Client
+from ..logging.logger import Logger
 
 client = Client()
 
@@ -23,6 +24,7 @@ def trace_operation(
 ):
     """
     Context manager for tracing operations with Langsmith.
+    Note: This is a simplified version that continues execution even if tracing fails.
     
     Args:
         name: Name of the operation being traced
@@ -30,53 +32,51 @@ def trace_operation(
         tags: Optional tags to attach to the trace
         metadata: Optional metadata to attach to the trace
     """
-    # Convert dictionary tags to list format
-    tag_list = []
-    if tags:
-        tag_list.extend(tags)
+    logger = Logger(__name__)
     
-    # Add default tags
-    tag_list.extend([
-        "component:book_recommendations",
-        "environment:development",
-        f"timestamp:{datetime.now(pytz.UTC).isoformat()}"
-    ])
+    try:
+        # Prepare tags
+        tag_list = tags or []
+        tag_list.extend([
+            "component:book_recommendations",
+            "environment:development",
+            f"timestamp:{datetime.now(pytz.UTC).isoformat()}"
+        ])
         
-    default_metadata = {
-        "service": "book_recommendations_atomic"
-    }
-    
-    if metadata:
-        default_metadata.update(metadata)
-    
-    # Convert metadata to inputs format for Langsmith
-    inputs = {"metadata": default_metadata}
-    if metadata and "input_params" in metadata:
-        inputs.update(metadata["input_params"])
-    
-    @traceable(
-        run_type="chain",  # Always use chain as the base type
-        name=name,
-        tags=tag_list,
-        metadata=default_metadata,
-        inputs=inputs
-    )
-    def traced_operation():
-        yield
+        # Prepare metadata
+        default_metadata = {"service": "book_recommendations_atomic"}
+        if metadata:
+            default_metadata.update(metadata)
+            
+        # Prepare inputs
+        inputs = {"metadata": default_metadata}
+        if metadata and "input_params" in metadata:
+            inputs.update(metadata["input_params"])
+        
+        # Attempt to create run (returns None)
+        try:
+            client.create_run(
+                name=name,
+                run_type=run_type,
+                tags=tag_list,
+                metadata=default_metadata,
+                inputs=inputs
+            )
+        except Exception as e:
+            logger.log('error', f"Failed to create Langsmith run: {str(e)}", {
+                'name': name,
+                'run_type': run_type,
+                'error': str(e)
+            })
+    except Exception as e:
+        logger.log('error', f"Error preparing Langsmith trace: {str(e)}")
         
     try:
-        with traced_operation():
-            yield
+        # Always yield None since we don't have a run object
+        yield None
     except Exception as e:
-        # Log the error in Langsmith
-        client.create_run(
-            name=f"{name}_error",
-            run_type="chain",
-            error=str(e),
-            inputs=inputs,
-            tags=tag_list,
-            metadata=default_metadata
-        )
+        # Log but don't prevent the error from propagating
+        logger.log('error', f"Error in traced operation: {str(e)}")
         raise
 
 def add_feedback(
@@ -84,7 +84,7 @@ def add_feedback(
     key: str,
     score: float,
     comment: Optional[str] = None
-) -> None:
+):
     """
     Add feedback to a traced run.
     
@@ -94,12 +94,20 @@ def add_feedback(
         score: Numerical score for the feedback
         comment: Optional comment explaining the feedback
     """
-    client.create_feedback(
-        run_id,
-        key=key,
-        score=score,
-        comment=comment
-    )
+    try:
+        client.create_feedback(
+            run_id,
+            key=key,
+            score=score,
+            comment=comment
+        )
+    except Exception as e:
+        logger = Logger(__name__)
+        logger.log('error', f"Failed to add feedback: {str(e)}", {
+            'run_id': run_id,
+            'key': key,
+            'score': score
+        })
 
 def get_run_tree(run_id: str) -> RunTree:
     """

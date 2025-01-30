@@ -24,6 +24,9 @@ class CrossDomainMediaAgent(TracedBaseAgent[CrossDomainMediaInput, CrossDomainMe
     3. Provide detailed explanations of thematic connections
     """
 
+    input_schema = CrossDomainMediaInput
+    output_schema = CrossDomainMediaOutput
+
     def __init__(self, config: BaseAgentConfig = None):
         """
         Initialize the cross-domain media recommendation agent.

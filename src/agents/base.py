@@ -36,7 +36,7 @@ class TracedBaseAgent(AtomicBaseAgent, Generic[InputType, OutputType]):
     def _generate_run_name(self) -> str:
         """Generate a unique name for the current run."""
         timestamp = datetime.now(pytz.UTC).strftime('%Y%m%d_%H%M%S')
-        return f"{self.__class__.__name__}_{timestamp}_{str(uuid.uuid4())[:8]}"
+        return f"{self.__class__.__name__}_{timestamp}"
         
     def run(self, params: InputType) -> OutputType:
         """
@@ -48,22 +48,21 @@ class TracedBaseAgent(AtomicBaseAgent, Generic[InputType, OutputType]):
         Returns:
             Agent output
         """
+        # Generate a unique name for this run
         run_name = self._generate_run_name()
-        
-        # Extract input parameters
-        input_params = {}
-        if hasattr(params, "dict"):
-            try:
-                input_params = params.dict()
-            except Exception as e:
-                self.logger.warning(f"Could not serialize input params: {e}")
-        else:
-            # Try to convert to dict if possible
-            try:
-                input_params = dict(params)
-            except Exception:
-                input_params = {"raw_input": str(params)}
-        
+
+        # Log that we're starting
+        self.logger.log('info', f'{self.__class__.__name__} starting run', {
+            'input': params.dict() if hasattr(params, 'dict') else {'raw_input': str(params)}
+        })
+
+        # Prepare input params for tracing
+        try:
+            input_params = {"raw_input": str(params)}
+        except Exception as e:
+            self.logger.log('warning', f"Could not convert input params: {e}")
+            input_params = {}
+
         # Prepare metadata
         metadata = {
             "agent_type": self.__class__.__name__,
@@ -84,29 +83,25 @@ class TracedBaseAgent(AtomicBaseAgent, Generic[InputType, OutputType]):
             tags=tags
         ):
             try:
+                # Run the agent
                 result = super().run(params)
                 
-                # Add success feedback with output data
+                # Log success
                 if hasattr(result, "dict"):
                     try:
                         result_dict = result.dict()
-                        add_feedback(
-                            run_name,
-                            "completion",
-                            1.0,
-                            f"Successfully generated output: {str(result_dict)[:200]}..."
-                        )
+                        self.logger.log('info', f'{self.__class__.__name__} completed successfully', {
+                            'output_type': type(result).__name__
+                        })
                     except Exception as e:
-                        self.logger.warning(f"Could not add success feedback: {e}")
+                        self.logger.log('warning', f"Could not log success details: {e}")
                         
                 return result
                 
             except Exception as e:
-                # Add error feedback
-                add_feedback(
-                    run_name,
-                    "error",
-                    0.0,
-                    f"Error during execution: {str(e)}"
-                )
+                # Log the error
+                self.logger.log('error', f'{self.__class__.__name__} encountered an error', {
+                    'error': str(e),
+                    'input': params.dict() if hasattr(params, 'dict') else {'raw_input': str(params)}
+                })
                 raise
